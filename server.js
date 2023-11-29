@@ -225,6 +225,7 @@ app.post("/distance", (req, res) => {
     .catch((err) => console.error(err));
 });
 
+// Menambahkan kode program untuk mengekspor data ke file excel
 app.get("/export", (req, res) => {
   Data.find({})
     .then((data) => {
@@ -236,6 +237,7 @@ app.get("/export", (req, res) => {
         Co_Add: item.co_add,
         Co_Lat: item.co_lat,
         Co_Lng: item.co_lng,
+        // Menambahkan properti lain dari data ke objek exportData
         Coe_Prov: item.coe_prov,
         Coe_City: item.coe_city,
         Coe_Count: item.coe_count,
@@ -248,20 +250,23 @@ app.get("/export", (req, res) => {
         Directions_Link: item.directionsLink,
       }));
 
+      // Mengubah data JSON menjadi sheet excel
       const ws = xlsx.utils.json_to_sheet(exportData);
+      // Membuat workbook baru
       const wb = xlsx.utils.book_new();
+      // Menambahkan sheet ke workbook dengan nama "Data"
       xlsx.utils.book_append_sheet(wb, ws, "Data");
 
-      // Menggunakan direktori sementara
-      const tempDir = os.tmpdir();
-      const excelFileName = `${tempDir}/data.xlsx`;
-
+      // Menentukan nama file excel yang ingin dihasilkan
+      const excelFileName = "data.xlsx";
+      // Menulis workbook ke file excel
       xlsx.writeFile(wb, excelFileName);
 
+      // Mengirim file excel sebagai respon dan menghapusnya setelah selesai
       res.download(excelFileName, (err) => {
         if (!err) {
-          // Hapus file sementara setelah diunduh
-          fs.unlinkSync(excelFileName);
+          // Menghapus file excel dari penyimpanan S3
+          s3fs.unlinkSync(excelFileName);
         }
       });
     })
